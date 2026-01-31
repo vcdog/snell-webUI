@@ -922,7 +922,7 @@ body {
     margin-top: var(--spacing-4);
 }
 
-.checkbox-label {
+.form-group .checkbox-label {
     display: flex;
     align-items: center;
     gap: var(--spacing-3);
@@ -936,12 +936,20 @@ body {
 }
 
 .checkbox-custom {
+    display: block;
+    /* Ensure it behaves as a block element */
     width: 20px;
     height: 20px;
+    min-width: 20px;
+    /* Force minimum size */
+    min-height: 20px;
+    /* Force minimum size */
     border: 2px solid var(--color-gray-300);
     border-radius: var(--radius-sm);
     position: relative;
     transition: all var(--transition-fast);
+    flex-shrink: 0;
+    background-color: var(--color-white);
 }
 
 .checkbox-label input[type="checkbox"]:checked+.checkbox-custom {
@@ -1564,4 +1572,109 @@ body {
     font-size: var(--font-size-xs);
     line-height: 1.6;
     resize: vertical;
+}
+
+/* Login Page Styles */
+.login-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: var(--spacing-4);
+    position: relative;
+    z-index: 10;
+}
+
+.login-card {
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(20px);
+    border-radius: var(--radius-2xl);
+    padding: var(--spacing-8);
+    width: 100%;
+    max-width: 420px;
+    box-shadow: var(--shadow-2xl), 0 0 40px rgba(79, 70, 229, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    animation: fadeUp 0.6s ease-out;
+}
+
+@keyframes fadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.login-header {
+    text-align: center;
+    margin-bottom: var(--spacing-6);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.login-logo {
+    width: 64px;
+    height: 64px;
+    color: var(--color-accent);
+    margin-bottom: var(--spacing-4);
+    filter: drop-shadow(0 0 10px rgba(79, 70, 229, 0.3));
+    animation: float 6s ease-in-out infinite;
+}
+
+.login-title {
+    font-size: var(--font-size-2xl);
+    font-weight: 700;
+    margin-bottom: var(--spacing-2);
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.login-subtitle {
+    color: var(--color-gray-500);
+    font-size: var(--font-size-sm);
+}
+
+.login-footer {
+    margin-top: var(--spacing-6);
+    text-align: center;
+    font-size: var(--font-size-xs);
+    color: var(--color-gray-400);
+}
+
+.validation-error {
+    color: var(--color-danger);
+    font-size: var(--font-size-xs);
+    margin-top: var(--spacing-1);
+    display: none;
+}
+
+.input-with-icon {
+    position: relative;
+}
+
+.input-icon {
+    position: absolute;
+    left: var(--spacing-3);
+    top: 50%;
+    transform: translateY(-50%);
+    width: 18px;
+    height: 18px;
+    color: var(--color-gray-400);
+    pointer-events: none;
+    transition: color var(--transition-normal);
+}
+
+.input-with-icon .form-input {
+    padding-left: calc(var(--spacing-3) + 24px);
+}
+
+.input-with-icon .form-input:focus~.input-icon {
+    color: var(--color-accent);
 }

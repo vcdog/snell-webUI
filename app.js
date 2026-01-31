@@ -10,7 +10,12 @@
 const CONFIG = {
     STORAGE_KEYS: {
         API_URL: 'snell_panel_api_url',
-        API_TOKEN: 'snell_panel_api_token'
+        API_TOKEN: 'snell_panel_api_token',
+        AUTH_SESSION: 'snell_panel_auth_session'
+    },
+    DEFAULT_AUTH: {
+        USERNAME: 'admin',
+        PASSWORD: 'admin'
     },
     TOAST_DURATION: 4000,
     DEBOUNCE_DELAY: 300
@@ -59,18 +64,37 @@ function countryCodeToFlag(countryCode) {
  * Get API configuration from localStorage
  */
 function getApiConfig() {
+    // Try session storage first
+    let url = sessionStorage.getItem(CONFIG.STORAGE_KEYS.API_URL);
+    let token = sessionStorage.getItem(CONFIG.STORAGE_KEYS.API_TOKEN);
+
+    // Then try local storage
+    if (!url || !token) {
+        url = localStorage.getItem(CONFIG.STORAGE_KEYS.API_URL);
+        token = localStorage.getItem(CONFIG.STORAGE_KEYS.API_TOKEN);
+    }
+
     return {
-        url: localStorage.getItem(CONFIG.STORAGE_KEYS.API_URL) || '',
-        token: localStorage.getItem(CONFIG.STORAGE_KEYS.API_TOKEN) || ''
+        url: url || '',
+        token: token || ''
     };
 }
 
 /**
  * Save API configuration to localStorage
  */
-function saveApiConfig(url, token) {
-    localStorage.setItem(CONFIG.STORAGE_KEYS.API_URL, url);
-    localStorage.setItem(CONFIG.STORAGE_KEYS.API_TOKEN, token);
+function saveApiConfig(url, token, remember = true) {
+    if (remember) {
+        localStorage.setItem(CONFIG.STORAGE_KEYS.API_URL, url);
+        localStorage.setItem(CONFIG.STORAGE_KEYS.API_TOKEN, token);
+        sessionStorage.removeItem(CONFIG.STORAGE_KEYS.API_URL);
+        sessionStorage.removeItem(CONFIG.STORAGE_KEYS.API_TOKEN);
+    } else {
+        sessionStorage.setItem(CONFIG.STORAGE_KEYS.API_URL, url);
+        sessionStorage.setItem(CONFIG.STORAGE_KEYS.API_TOKEN, token);
+        localStorage.removeItem(CONFIG.STORAGE_KEYS.API_URL);
+        localStorage.removeItem(CONFIG.STORAGE_KEYS.API_TOKEN);
+    }
 }
 
 /**
@@ -79,6 +103,8 @@ function saveApiConfig(url, token) {
 function clearApiConfig() {
     localStorage.removeItem(CONFIG.STORAGE_KEYS.API_URL);
     localStorage.removeItem(CONFIG.STORAGE_KEYS.API_TOKEN);
+    sessionStorage.removeItem(CONFIG.STORAGE_KEYS.API_URL);
+    sessionStorage.removeItem(CONFIG.STORAGE_KEYS.API_TOKEN);
 }
 
 /**
@@ -482,6 +508,122 @@ function filterNodes(query) {
     renderNodes();
 }
 
+/**
+ * Handle Login
+ */
+/**
+ * Check if user is logged in
+ */
+function isUserLoggedIn() {
+    return localStorage.getItem(CONFIG.STORAGE_KEYS.AUTH_SESSION) === 'true' ||
+        sessionStorage.getItem(CONFIG.STORAGE_KEYS.AUTH_SESSION) === 'true';
+}
+
+/**
+ * Handle Login
+ */
+async function handleLogin() {
+    const usernameInput = document.getElementById('login-username');
+    const passwordInput = document.getElementById('login-password');
+    const rememberInput = document.getElementById('login-remember');
+    const loginBtn = document.getElementById('btn-login');
+
+    const username = usernameInput.value.trim();
+    const password = passwordInput.value.trim();
+    const remember = rememberInput.checked;
+
+    if (!username) {
+        showToast('error', '请输入用户名');
+        usernameInput.focus();
+        return;
+    }
+
+    if (!password) {
+        showToast('error', '请输入密码');
+        passwordInput.focus();
+        return;
+    }
+
+    loginBtn.disabled = true;
+    loginBtn.innerHTML = '<span class="spinner"></span> 正在登录...';
+
+    // Simulate network delay for better UX
+    await new Promise(resolve => setTimeout(resolve, 600));
+
+    if (username === CONFIG.DEFAULT_AUTH.USERNAME && password === CONFIG.DEFAULT_AUTH.PASSWORD) {
+        if (remember) {
+            localStorage.setItem(CONFIG.STORAGE_KEYS.AUTH_SESSION, 'true');
+        } else {
+            sessionStorage.setItem(CONFIG.STORAGE_KEYS.AUTH_SESSION, 'true');
+        }
+
+        showToast('success', '登录成功');
+        // Redirect to index
+        window.location.href = 'index.html';
+    } else {
+        showToast('error', '用户名或密码错误');
+        passwordInput.value = '';
+        passwordInput.focus();
+    }
+
+    loginBtn.disabled = false;
+    loginBtn.innerHTML = `
+        <span>登录 / 连接</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+            <polyline points="10 17 15 12 10 7"/>
+            <line x1="15" y1="12" x2="3" y2="12"/>
+        </svg>
+    `;
+}
+
+/**
+ * Handle Logout
+ */
+function handleLogout() {
+    localStorage.removeItem(CONFIG.STORAGE_KEYS.AUTH_SESSION);
+    sessionStorage.removeItem(CONFIG.STORAGE_KEYS.AUTH_SESSION);
+    showToast('success', '已退出登录');
+    setTimeout(() => {
+        window.location.href = 'login.html';
+    }, 500);
+}
+
+/**
+ * Check Login Status and Router
+ */
+function checkLoginStatus() {
+    const isLogin = isUserLoggedIn();
+    const currentPath = window.location.pathname;
+    const isLoginPage = currentPath.endsWith('login.html');
+
+    if (isLogin) {
+        if (isLoginPage) {
+            // Already logged in, go to app
+            window.location.href = 'index.html';
+            return;
+        }
+
+        // We are in app, check API config
+        if (isApiConfigured()) {
+            if (state.nodes.length === 0) {
+                // Defer fetch to init or handle it here if init is already done
+                // But init calls this.
+                // We will let init call fetchNodes() if needed, or do it here.
+                // Better to do it here if init depends on it.
+                // Actually init calls checkLoginStatus, then calls fetchNodes if login status calls it?
+                // No, init calls fetchNodes() if logged in.
+                // Let's rely on init for fetching.
+            }
+        }
+    } else {
+        if (!isLoginPage) {
+            // Not logged in and not on login page
+            window.location.href = 'login.html';
+        }
+    }
+}
+
 // ===================================
 // Event Handlers
 // ===================================
@@ -746,6 +888,12 @@ function togglePasswordVisibility(inputId, btn) {
 // ===================================
 
 function setupEventListeners() {
+    // Logout button
+    const btnLogout = document.getElementById('btn-top-logout');
+    if (btnLogout) {
+        btnLogout.addEventListener('click', handleLogout);
+    }
+
     // Action buttons
     document.getElementById('btn-refresh').addEventListener('click', handleRefresh);
     document.getElementById('btn-api-settings').addEventListener('click', () => {
@@ -852,8 +1000,15 @@ function setupEventListeners() {
     // Clear all custom rules
     document.getElementById('btn-clear-custom-rules').addEventListener('click', clearCustomRules);
 
-    // Initialize custom rules empty state
-    renderCustomRulesList();
+    // Login listeners
+    const loginBtn = document.getElementById('btn-login');
+    if (loginBtn) {
+        loginBtn.addEventListener('click', handleLogin);
+    }
+
+    document.getElementById('login-password').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') handleLogin();
+    });
 }
 
 // ===================================
@@ -1048,13 +1203,8 @@ function getAdvancedOptionsConfig() {
 function init() {
     setupEventListeners();
 
-    // Check if API is configured and fetch nodes
-    if (isApiConfigured()) {
-        fetchNodes();
-    } else {
-        updateStats();
-        renderNodes();
-    }
+    // Check if API is configured
+    checkLoginStatus();
 }
 
 // Run initialization when DOM is ready
