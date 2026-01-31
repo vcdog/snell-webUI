@@ -10,11 +10,17 @@
 
 - 🎨 **现代化设计** - 采用 Glassmorphism 设计风格，渐变背景，流畅动画
 - 📱 **响应式布局** - 完美适配桌面端和移动端
-- 🔒 **安全认证** - 支持 API Token 认证，本地存储配置
+- 🔒 **多重安全** - 独立的登录页面，支持会话管理与 API Token 双重认证
 - 🌍 **多语言支持** - 支持中文界面
-- 🚀 **高性能** - 纯原生 JavaScript，无需任何框架依赖
+- 🚀 **高性能** - 纯原生 JavaScript，无框架依赖
 
 ## 🎯 功能
+
+### 身份验证
+- ✅ 用户名密码登录保护
+- ✅ 独立的登录页面
+- ✅ 会话状态管理 (Session Storage)
+- ✅ 记住我功能 (Local Storage)
 
 ### 节点管理
 - ✅ 查看所有节点列表
@@ -40,7 +46,7 @@
 
 ### 方法 1: 直接打开
 
-双击 `index.html` 文件在浏览器中打开。
+双击 `index.html` 或 `login.html` 文件在浏览器中打开。系统会自动重定向到正确的页面。
 
 > ⚠️ 注意: 由于浏览器安全策略限制，某些功能（如剪贴板复制）可能需要通过 HTTP 服务器访问。
 
@@ -77,6 +83,7 @@ serve .
 
 ```
 snell-webUI/
+├── login.html
 ├── index.html
 ├── styles.css
 └── app.js
@@ -84,14 +91,23 @@ snell-webUI/
 
 ## 📖 使用说明
 
-### 配置 API
+### 1. 登录系统
 
-1. 点击 **"API 设置"** 按钮
-2. 输入您的 Snell Panel 后端 API URL（例如: `https://api.example.com`）
-3. 输入 API Token
-4. 点击 **"保存设置"**
+1. 打开应用，进入登录界面
+2. 输入默认用户名: `admin`
+3. 输入默认密码: `admin`
+4. (可选) 勾选 "记住我" 保持登录状态
+5. 点击登录进入主界面
 
-### 添加节点
+### 2. 配置 API (首次登录)
+
+1. 登录成功后，若未检测到 API 配置，系统会提示空状态
+2. 点击 **"配置 API"** 按钮
+3. 输入您的 Snell Panel 后端 API URL（例如: `https://api.example.com`）
+4. 输入 API Token
+5. 点击 **"保存设置"**
+
+### 3. 添加节点
 
 1. 确保已配置 API
 2. 点击 **"添加节点"** 按钮
@@ -103,7 +119,7 @@ snell-webUI/
    - 协议版本
 4. 点击 **"保存节点"**
 
-### 生成订阅链接
+### 4. 生成订阅链接
 
 1. 点击 **"生成订阅链接"** 按钮
 2. 可选配置：
@@ -128,6 +144,7 @@ Web UI 调用以下后端 API 接口：
 
 ```
 snell-webUI/
+├── login.html      # 登录页面 HTML
 ├── index.html      # 主页面 HTML
 ├── styles.css      # 样式文件
 ├── app.js          # JavaScript 应用逻辑
@@ -144,7 +161,9 @@ snell-webUI/
 
 ## 🔐 安全说明
 
-- API Token 存储在浏览器 LocalStorage 中
+- **双重防护**: 登录会话与 API Token 分离存储
+- **会话安全**: 默认使用 Session Storage，关闭浏览器即退出
+- API Token 存储在浏览器 LocalStorage 中以便持久使用
 - 建议使用 HTTPS 部署确保传输安全
 - 定期更换 API Token
 
