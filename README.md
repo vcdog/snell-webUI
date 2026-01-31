@@ -4,7 +4,12 @@
 
 ## 📸 预览
 
-![Snell Panel Preview](preview.png)
+![Snell Panel Login Preview](https://img1.ijeko.com/snell-webui/20260131214855_38_2.png)
+
+![Snell Panel Main Preview](https://img1.ijeko.com/snell-webui/20260131215623_39_2.png)
+
+
+
 
 ## ✨ 特性
 
