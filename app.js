@@ -229,12 +229,11 @@ async function apiRequest(endpoint, options = {}) {
 
     const fullUrl = new URL(endpoint, url.endsWith('/') ? url : url + '/');
 
-    // Legacy support: query param
-    // fullUrl.searchParams.set('token', token);
+    // Use query parameter for static API token (from .env API_TOKEN)
+    fullUrl.searchParams.set('token', token);
 
     const headers = {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`, // Use Bearer token
         ...options.headers
     };
 
@@ -369,6 +368,21 @@ function getSubscriptionUrl(options = {}) {
 
     if (options.showFlag === false) {
         subUrl.searchParams.set('flag', 'false');
+    }
+
+    // Advanced subscription parameters
+    if (options.format === 'advanced') {
+        subUrl.searchParams.set('format', 'advanced');
+
+        // Rule set selection
+        if (options.ruleSet) {
+            subUrl.searchParams.set('ruleSet', options.ruleSet);
+        }
+
+        // Custom rules (comma-separated)
+        if (options.ruleSet === 'custom' && options.customRules && options.customRules.length > 0) {
+            subUrl.searchParams.set('customRules', options.customRules.join(','));
+        }
     }
 
     return subUrl.toString();
@@ -531,22 +545,14 @@ function isUserLoggedIn() {
  * Handle Login
  */
 async function handleLogin() {
-    const apiUrlInput = document.getElementById('login-api-url');
     const usernameInput = document.getElementById('login-username');
     const passwordInput = document.getElementById('login-password');
     const rememberInput = document.getElementById('login-remember');
     const loginBtn = document.getElementById('btn-login');
 
-    const apiUrl = apiUrlInput.value.trim();
     const username = usernameInput.value.trim();
     const password = passwordInput.value.trim();
     const remember = rememberInput.checked;
-
-    if (!apiUrl) {
-        showToast('error', '请输入服务器地址');
-        apiUrlInput.focus();
-        return;
-    }
 
     if (!username) {
         showToast('error', '请输入用户名');
@@ -560,21 +566,17 @@ async function handleLogin() {
         return;
     }
 
-    // Validate URL format
-    try {
-        new URL(apiUrl);
-    } catch {
-        showToast('error', '服务器地址格式不正确');
-        apiUrlInput.focus();
-        return;
-    }
 
     loginBtn.disabled = true;
     loginBtn.innerHTML = '<span class="spinner"></span> 正在登录...';
 
     try {
-        // Construct Login URL
-        const loginUrl = new URL('api/login', apiUrl.endsWith('/') ? apiUrl : apiUrl + '/');
+        // Use configured backend API URL (localhost:9090 in development)
+        const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+            ? 'http://localhost:9090'  // Development: backend on port 9090
+            : window.location.origin;   // Production: same origin (nginx proxy)
+
+        const loginUrl = new URL('api/login', API_BASE_URL.endsWith('/') ? API_BASE_URL : API_BASE_URL + '/');
 
         const response = await fetch(loginUrl.toString(), {
             method: 'POST',
@@ -595,13 +597,8 @@ async function handleLogin() {
         const resData = await response.json();
 
         if (resData.status === 'success' && resData.data && resData.data.token) {
-            const token = resData.data.token;
-
-            // Save Config
-            // Note: We save the API URL and the Token acquired from login
-            saveApiConfig(apiUrl, token, remember);
-
-            // Save Login Session
+            // Only save login session
+            // User will manually configure API settings for node management
             if (remember) {
                 localStorage.setItem(CONFIG.STORAGE_KEYS.AUTH_SESSION, 'true');
             } else {
@@ -609,8 +606,10 @@ async function handleLogin() {
             }
 
             showToast('success', '登录成功');
-            // Redirect to index
-            window.location.href = 'index.html';
+            // Redirect to index using replace
+            setTimeout(() => {
+                window.location.replace('index.html');
+            }, 300);
         } else {
             throw new Error('登录响应格式错误');
         }
@@ -651,6 +650,7 @@ function handleLogout() {
 function checkLoginStatus() {
     const isLogin = isUserLoggedIn();
     const currentPath = window.location.pathname;
+    // Check if we are on the login page (either /login.html or ends with it)
     const isLoginPage = currentPath.endsWith('login.html');
 
     if (isLogin) {
@@ -660,21 +660,19 @@ function checkLoginStatus() {
             return;
         }
 
-        // We are in app, check API config
-        if (isApiConfigured()) {
-            if (state.nodes.length === 0) {
-                // Defer fetch to init or handle it here if init is already done
-                // But init calls this.
-                // We will let init call fetchNodes() if needed, or do it here.
-                // Better to do it here if init depends on it.
-                // Actually init calls checkLoginStatus, then calls fetchNodes if login status calls it?
-                // No, init calls fetchNodes() if logged in.
-                // Let's rely on init for fetching.
+        // We are in app, user is logged in
+        // Don't auto-fetch nodes on page load to avoid errors when API not configured
+        // User should manually click "API Settings" first, then "Refresh"
+        if (currentPath === '/' || currentPath.endsWith('index.html') || currentPath.endsWith('/')) {
+            if (!isApiConfigured()) {
+                console.log('💡 提示: 请先点击"API 设置"配置后端服务器地址和 Token');
             }
         }
     } else {
         if (!isLoginPage) {
-            // Not logged in and not on login page
+            // Not logged in and not on login page -> redirect to login
+            // But verify we are not on some public asset or safe page if any exists
+            // For this SPA, we treat everything else as protected
             window.location.href = 'login.html';
         }
     }
@@ -893,7 +891,27 @@ function updateSubscriptionUrl() {
     const filter = document.getElementById('sub-filter').value.trim();
     const showFlag = document.getElementById('sub-show-flag').checked;
 
-    const url = getSubscriptionUrl({ via, filter, showFlag });
+    // Check if advanced options are enabled
+    const advancedEnabled = document.getElementById('toggle-advanced-options')?.checked || false;
+
+    let options = { via, filter, showFlag };
+
+    if (advancedEnabled) {
+        // Get rule preset selection
+        const rulePreset = document.getElementById('rule-preset')?.value || 'custom';
+
+        options.format = 'advanced';
+        options.ruleSet = rulePreset;
+
+        // If custom mode, collect selected rules
+        if (rulePreset === 'custom') {
+            const ruleCheckboxes = document.querySelectorAll('#custom-rules-grid input[name="rule"]:checked');
+            const selectedRules = Array.from(ruleCheckboxes).map(cb => cb.value);
+            options.customRules = selectedRules;
+        }
+    }
+
+    const url = getSubscriptionUrl(options);
     document.getElementById('subscription-url').value = url;
 }
 
@@ -950,58 +968,174 @@ function setupEventListeners() {
         btnLogout.addEventListener('click', handleLogout);
     }
 
-    // Action buttons
-    document.getElementById('btn-refresh').addEventListener('click', handleRefresh);
-    document.getElementById('btn-api-settings').addEventListener('click', () => {
-        // Pre-fill current settings
-        const { url, token } = getApiConfig();
-        document.getElementById('api-url').value = url;
-        document.getElementById('api-token').value = token;
-        openModal('modal-api-settings');
-    });
-    document.getElementById('btn-add-node').addEventListener('click', handleAddNode);
-    document.getElementById('btn-generate-subscription').addEventListener('click', handleGenerateSubscription);
-    document.getElementById('btn-configure-api').addEventListener('click', () => {
-        const { url, token } = getApiConfig();
-        document.getElementById('api-url').value = url;
-        document.getElementById('api-token').value = token;
-        openModal('modal-api-settings');
-    });
+    // Action buttons - only add listeners if elements exist (they won't on login page)
+    const btnRefresh = document.getElementById('btn-refresh');
+    if (btnRefresh) {
+        btnRefresh.addEventListener('click', handleRefresh);
+    }
+
+    const btnApiSettings = document.getElementById('btn-api-settings');
+    if (btnApiSettings) {
+        btnApiSettings.addEventListener('click', () => {
+            // Pre-fill current settings
+            const { url, token } = getApiConfig();
+            document.getElementById('api-url').value = url;
+            document.getElementById('api-token').value = token;
+            openModal('modal-api-settings');
+        });
+    }
+
+    const btnAddNode = document.getElementById('btn-add-node');
+    if (btnAddNode) {
+        btnAddNode.addEventListener('click', handleAddNode);
+    }
+
+    const btnGenerateSubscription = document.getElementById('btn-generate-subscription');
+    if (btnGenerateSubscription) {
+        btnGenerateSubscription.addEventListener('click', handleGenerateSubscription);
+    }
+
+    const btnConfigureApi = document.getElementById('btn-configure-api');
+    if (btnConfigureApi) {
+        btnConfigureApi.addEventListener('click', () => {
+            const { url, token } = getApiConfig();
+            document.getElementById('api-url').value = url;
+            document.getElementById('api-token').value = token;
+            openModal('modal-api-settings');
+        });
+    }
+
 
     // API Settings Modal
-    document.getElementById('close-api-settings').addEventListener('click', () => closeModal('modal-api-settings'));
-    document.getElementById('btn-save-settings').addEventListener('click', handleSaveApiSettings);
-    document.getElementById('btn-clear-settings').addEventListener('click', handleClearSettings);
-    document.getElementById('toggle-token-visibility').addEventListener('click', function () {
-        togglePasswordVisibility('api-token', this);
-    });
+    const closeApiSettings = document.getElementById('close-api-settings');
+    if (closeApiSettings) {
+        closeApiSettings.addEventListener('click', () => closeModal('modal-api-settings'));
+    }
+
+    const btnSaveSettings = document.getElementById('btn-save-settings');
+    if (btnSaveSettings) {
+        btnSaveSettings.addEventListener('click', handleSaveApiSettings);
+    }
+
+    const btnClearSettings = document.getElementById('btn-clear-settings');
+    if (btnClearSettings) {
+        btnClearSettings.addEventListener('click', handleClearSettings);
+    }
+
+    const toggleTokenVisibility = document.getElementById('toggle-token-visibility');
+    if (toggleTokenVisibility) {
+        toggleTokenVisibility.addEventListener('click', function () {
+            togglePasswordVisibility('api-token', this);
+        });
+    }
 
     // Node Modal
-    document.getElementById('close-node-modal').addEventListener('click', () => closeModal('modal-node'));
-    document.getElementById('btn-cancel-node').addEventListener('click', () => closeModal('modal-node'));
-    document.getElementById('btn-save-node').addEventListener('click', handleSaveNode);
-    document.getElementById('toggle-psk-visibility').addEventListener('click', function () {
-        togglePasswordVisibility('node-psk', this);
-    });
+    const closeNodeModal = document.getElementById('close-node-modal');
+    if (closeNodeModal) {
+        closeNodeModal.addEventListener('click', () => closeModal('modal-node'));
+    }
+
+    const btnCancelNode = document.getElementById('btn-cancel-node');
+    if (btnCancelNode) {
+        btnCancelNode.addEventListener('click', () => closeModal('modal-node'));
+    }
+
+    const btnSaveNode = document.getElementById('btn-save-node');
+    if (btnSaveNode) {
+        btnSaveNode.addEventListener('click', handleSaveNode);
+    }
+
+    const togglePskVisibility = document.getElementById('toggle-psk-visibility');
+    if (togglePskVisibility) {
+        togglePskVisibility.addEventListener('click', function () {
+            togglePasswordVisibility('node-psk', this);
+        });
+    }
 
     // Subscription Modal
-    document.getElementById('close-subscription-modal').addEventListener('click', () => closeModal('modal-subscription'));
-    document.getElementById('btn-copy-subscription').addEventListener('click', handleCopySubscription);
-    document.getElementById('btn-regenerate-subscription').addEventListener('click', updateSubscriptionUrl);
-    document.getElementById('sub-via').addEventListener('input', updateSubscriptionUrl);
-    document.getElementById('sub-filter').addEventListener('input', updateSubscriptionUrl);
-    document.getElementById('sub-show-flag').addEventListener('change', updateSubscriptionUrl);
+    const closeSubscriptionModal = document.getElementById('close-subscription-modal');
+    if (closeSubscriptionModal) {
+        closeSubscriptionModal.addEventListener('click', () => closeModal('modal-subscription'));
+    }
+
+    const btnCopySubscription = document.getElementById('btn-copy-subscription');
+    if (btnCopySubscription) {
+        btnCopySubscription.addEventListener('click', handleCopySubscription);
+    }
+
+    const btnRegenerateSubscription = document.getElementById('btn-regenerate-subscription');
+    if (btnRegenerateSubscription) {
+        btnRegenerateSubscription.addEventListener('click', updateSubscriptionUrl);
+    }
+
+    const subVia = document.getElementById('sub-via');
+    if (subVia) {
+        subVia.addEventListener('input', updateSubscriptionUrl);
+    }
+
+    const subFilter = document.getElementById('sub-filter');
+    if (subFilter) {
+        subFilter.addEventListener('input', updateSubscriptionUrl);
+    }
+
+    const subShowFlag = document.getElementById('sub-show-flag');
+    if (subShowFlag) {
+        subShowFlag.addEventListener('change', updateSubscriptionUrl);
+    }
+
+    // Advanced subscription options
+    const toggleAdvanced = document.getElementById('toggle-advanced-options');
+    if (toggleAdvanced) {
+        toggleAdvanced.addEventListener('change', function () {
+            const content = document.getElementById('advanced-options-content');
+            if (content) {
+                content.style.display = this.checked ? 'block' : 'none';
+            }
+            updateSubscriptionUrl();
+        });
+    }
+
+    const rulePresetSelect = document.getElementById('rule-preset');
+    if (rulePresetSelect) {
+        rulePresetSelect.addEventListener('change', function () {
+            const customGrid = document.getElementById('custom-rules-grid');
+            if (customGrid) {
+                // Show/hide custom rules grid based on selection
+                customGrid.style.display = this.value === 'custom' ? 'grid' : 'none';
+            }
+            updateSubscriptionUrl();
+        });
+    }
+
+    // Add change listeners to all custom rule checkboxes
+    const ruleCheckboxes = document.querySelectorAll('#custom-rules-grid input[name="rule"]');
+    ruleCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', updateSubscriptionUrl);
+    });
 
     // Confirm Delete Modal
-    document.getElementById('close-confirm-modal').addEventListener('click', () => closeModal('modal-confirm-delete'));
-    document.getElementById('btn-cancel-delete').addEventListener('click', () => closeModal('modal-confirm-delete'));
-    document.getElementById('btn-confirm-delete').addEventListener('click', handleConfirmDelete);
+    const closeConfirmModal = document.getElementById('close-confirm-modal');
+    if (closeConfirmModal) {
+        closeConfirmModal.addEventListener('click', () => closeModal('modal-confirm-delete'));
+    }
+
+    const btnCancelDelete = document.getElementById('btn-cancel-delete');
+    if (btnCancelDelete) {
+        btnCancelDelete.addEventListener('click', () => closeModal('modal-confirm-delete'));
+    }
+
+    const btnConfirmDelete = document.getElementById('btn-confirm-delete');
+    if (btnConfirmDelete) {
+        btnConfirmDelete.addEventListener('click', handleConfirmDelete);
+    }
 
     // Search input
     const searchInput = document.getElementById('search-input');
-    searchInput.addEventListener('input', debounce((e) => {
-        filterNodes(e.target.value);
-    }, CONFIG.DEBOUNCE_DELAY));
+    if (searchInput) {
+        searchInput.addEventListener('input', debounce((e) => {
+            filterNodes(e.target.value);
+        }, CONFIG.DEBOUNCE_DELAY));
+    }
 
     // Close modals on backdrop click
     document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
@@ -1016,45 +1150,74 @@ function setupEventListeners() {
     });
 
     // Enter key for forms
-    document.getElementById('api-url').addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-            document.getElementById('api-token').focus();
-        }
-    });
-    document.getElementById('api-token').addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-            handleSaveApiSettings();
-        }
-    });
+    const apiUrlInput = document.getElementById('api-url');
+    if (apiUrlInput) {
+        apiUrlInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                const apiTokenInput = document.getElementById('api-token');
+                if (apiTokenInput) apiTokenInput.focus();
+            }
+        });
+    }
+
+    const apiTokenInput = document.getElementById('api-token');
+    if (apiTokenInput) {
+        apiTokenInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                handleSaveApiSettings();
+            }
+        });
+    }
 
     // ===================================
     // Advanced Options Event Listeners
     // ===================================
 
     // Toggle advanced options visibility
-    document.getElementById('toggle-advanced-options').addEventListener('change', function () {
-        const content = document.getElementById('advanced-options-content');
-        content.style.display = this.checked ? 'block' : 'none';
-    });
+    const toggleAdvancedOptions = document.getElementById('toggle-advanced-options');
+    if (toggleAdvancedOptions) {
+        toggleAdvancedOptions.addEventListener('change', function () {
+            const content = document.getElementById('advanced-options-content');
+            if (content) {
+                content.style.display = this.checked ? 'block' : 'none';
+            }
+        });
+    }
 
     // Rule preset selection
-    document.getElementById('rule-preset').addEventListener('change', function () {
-        applyRulePreset(this.value);
-    });
+    const rulePresetDropdown = document.getElementById('rule-preset');
+    if (rulePresetDropdown) {
+        rulePresetDropdown.addEventListener('change', function () {
+            applyRulePreset(this.value);
+        });
+    }
 
     // View tabs switching
-    document.getElementById('tab-form-view').addEventListener('click', function () {
-        switchCustomRulesView('form');
-    });
-    document.getElementById('tab-json-view').addEventListener('click', function () {
-        switchCustomRulesView('json');
-    });
+    const tabFormView = document.getElementById('tab-form-view');
+    if (tabFormView) {
+        tabFormView.addEventListener('click', function () {
+            switchCustomRulesView('form');
+        });
+    }
+
+    const tabJsonView = document.getElementById('tab-json-view');
+    if (tabJsonView) {
+        tabJsonView.addEventListener('click', function () {
+            switchCustomRulesView('json');
+        });
+    }
 
     // Add custom rule button
-    document.getElementById('btn-add-custom-rule').addEventListener('click', addCustomRule);
+    const btnAddCustomRule = document.getElementById('btn-add-custom-rule');
+    if (btnAddCustomRule) {
+        btnAddCustomRule.addEventListener('click', addCustomRule);
+    }
 
     // Clear all custom rules
-    document.getElementById('btn-clear-custom-rules').addEventListener('click', clearCustomRules);
+    const btnClearCustomRules = document.getElementById('btn-clear-custom-rules');
+    if (btnClearCustomRules) {
+        btnClearCustomRules.addEventListener('click', clearCustomRules);
+    }
 
     // Login listeners
     const loginBtn = document.getElementById('btn-login');
@@ -1062,9 +1225,12 @@ function setupEventListeners() {
         loginBtn.addEventListener('click', handleLogin);
     }
 
-    document.getElementById('login-password').addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') handleLogin();
-    });
+    const loginPassword = document.getElementById('login-password');
+    if (loginPassword) {
+        loginPassword.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') handleLogin();
+        });
+    }
 }
 
 // ===================================

@@ -10,10 +10,23 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
+    
+    <!-- 立即检查登录状态，防止页面闪现 -->
+    <script>
+        (function() {
+            const isLoggedIn = sessionStorage.getItem('AUTH_SESSION') === 'true';
+            const currentPath = window.location.pathname;
+            const isLoginPage = currentPath.endsWith('login.html');
+            if (!isLoggedIn && !isLoginPage) {
+                window.location.replace('login.html');
+            }
+        })();
+    </script>
 </head>
 
 <body>
     <!-- Toast 通知容器 -->
+    <div id="toast-container"></div>
     <!-- 背景装饰 (全局) -->
     <div class="bg-decoration">
         <div class="gradient-orb orb-1"></div>
