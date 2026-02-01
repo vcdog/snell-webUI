@@ -36,6 +36,17 @@
             </div>
             <div class="login-form">
                 <div class="form-group">
+                    <label for="login-api-url">服务器地址 (API URL)</label>
+                    <div class="input-with-icon">
+                        <input type="text" id="login-api-url" class="form-input" placeholder="例如: http://localhost:9090"
+                            value="">
+                        <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+                        </svg>
+                    </div>
+                </div>
+                <div class="form-group">
                     <label for="login-username">用户名</label>
                     <div class="input-with-icon">
                         <input type="text" id="login-username" class="form-input" placeholder="默认: admin">
@@ -85,8 +96,16 @@
         // Check if already logged in, redirect to index
         // This relies on shared logic in app.js or we can implement it here simply
         document.addEventListener('DOMContentLoaded', () => {
-            // We can rely on app.js init() but app.js tries to do a lot.
-            // We'll let app.js handle it but we need to ensure app.js knows we are on login page.
+            // Load saved API URL if available
+            const savedUrl = localStorage.getItem('snell_panel_api_url') || sessionStorage.getItem('snell_panel_api_url');
+            if (savedUrl) {
+                document.getElementById('login-api-url').value = savedUrl;
+            } else {
+                // Default to current origin if no saved URL
+                // document.getElementById('login-api-url').value = window.location.origin;
+                // Or maybe a common default like http://localhost:9090
+                document.getElementById('login-api-url').value = 'http://localhost:9090'; // Default suggestion
+            }
         });
     </script>
 </body>

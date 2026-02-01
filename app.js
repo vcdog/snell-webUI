@@ -13,10 +13,6 @@ const CONFIG = {
         API_TOKEN: 'snell_panel_api_token',
         AUTH_SESSION: 'snell_panel_auth_session'
     },
-    DEFAULT_AUTH: {
-        USERNAME: 'admin',
-        PASSWORD: 'admin'
-    },
     TOAST_DURATION: 4000,
     DEBOUNCE_DELAY: 300
 };
@@ -232,28 +228,40 @@ async function apiRequest(endpoint, options = {}) {
     }
 
     const fullUrl = new URL(endpoint, url.endsWith('/') ? url : url + '/');
-    fullUrl.searchParams.set('token', token);
 
-    const response = await fetch(fullUrl.toString(), {
-        ...options,
-        headers: {
-            'Content-Type': 'application/json',
-            ...options.headers
+    // Legacy support: query param
+    // fullUrl.searchParams.set('token', token);
+
+    const headers = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`, // Use Bearer token
+        ...options.headers
+    };
+
+    try {
+        const response = await fetch(fullUrl.toString(), {
+            ...options,
+            headers: headers
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.message || `请求失败: ${response.status}`);
         }
-    });
 
-    if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `请求失败: ${response.status}`);
+        // Check if response is JSON
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+            return response.json();
+        }
+
+        return response.text();
+    } catch (error) {
+        if (error.message.includes('Failed to fetch')) {
+            throw new Error('连接服务器失败，请检查 API URL 是否正确');
+        }
+        throw error;
     }
-
-    // Check if response is JSON
-    const contentType = response.headers.get('content-type');
-    if (contentType && contentType.includes('application/json')) {
-        return response.json();
-    }
-
-    return response.text();
 }
 
 /**
@@ -523,14 +531,22 @@ function isUserLoggedIn() {
  * Handle Login
  */
 async function handleLogin() {
+    const apiUrlInput = document.getElementById('login-api-url');
     const usernameInput = document.getElementById('login-username');
     const passwordInput = document.getElementById('login-password');
     const rememberInput = document.getElementById('login-remember');
     const loginBtn = document.getElementById('btn-login');
 
+    const apiUrl = apiUrlInput.value.trim();
     const username = usernameInput.value.trim();
     const password = passwordInput.value.trim();
     const remember = rememberInput.checked;
+
+    if (!apiUrl) {
+        showToast('error', '请输入服务器地址');
+        apiUrlInput.focus();
+        return;
+    }
 
     if (!username) {
         showToast('error', '请输入用户名');
@@ -544,37 +560,77 @@ async function handleLogin() {
         return;
     }
 
+    // Validate URL format
+    try {
+        new URL(apiUrl);
+    } catch {
+        showToast('error', '服务器地址格式不正确');
+        apiUrlInput.focus();
+        return;
+    }
+
     loginBtn.disabled = true;
     loginBtn.innerHTML = '<span class="spinner"></span> 正在登录...';
 
-    // Simulate network delay for better UX
-    await new Promise(resolve => setTimeout(resolve, 600));
+    try {
+        // Construct Login URL
+        const loginUrl = new URL('api/login', apiUrl.endsWith('/') ? apiUrl : apiUrl + '/');
 
-    if (username === CONFIG.DEFAULT_AUTH.USERNAME && password === CONFIG.DEFAULT_AUTH.PASSWORD) {
-        if (remember) {
-            localStorage.setItem(CONFIG.STORAGE_KEYS.AUTH_SESSION, 'true');
-        } else {
-            sessionStorage.setItem(CONFIG.STORAGE_KEYS.AUTH_SESSION, 'true');
+        const response = await fetch(loginUrl.toString(), {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                username: username,
+                password: password
+            })
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.message || `登录失败: ${response.status}`);
         }
 
-        showToast('success', '登录成功');
-        // Redirect to index
-        window.location.href = 'index.html';
-    } else {
-        showToast('error', '用户名或密码错误');
+        const resData = await response.json();
+
+        if (resData.status === 'success' && resData.data && resData.data.token) {
+            const token = resData.data.token;
+
+            // Save Config
+            // Note: We save the API URL and the Token acquired from login
+            saveApiConfig(apiUrl, token, remember);
+
+            // Save Login Session
+            if (remember) {
+                localStorage.setItem(CONFIG.STORAGE_KEYS.AUTH_SESSION, 'true');
+            } else {
+                sessionStorage.setItem(CONFIG.STORAGE_KEYS.AUTH_SESSION, 'true');
+            }
+
+            showToast('success', '登录成功');
+            // Redirect to index
+            window.location.href = 'index.html';
+        } else {
+            throw new Error('登录响应格式错误');
+        }
+
+    } catch (error) {
+        console.error('Login error:', error);
+        showToast('error', '登录失败', error.message);
         passwordInput.value = '';
         passwordInput.focus();
-    }
 
-    loginBtn.disabled = false;
-    loginBtn.innerHTML = `
-        <span>登录 / 连接</span>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
-            <polyline points="10 17 15 12 10 7"/>
-            <line x1="15" y1="12" x2="3" y2="12"/>
-        </svg>
-    `;
+        loginBtn.disabled = false;
+        loginBtn.innerHTML = `
+            <span>登录 / 连接</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+                <polyline points="10 17 15 12 10 7"/>
+                <line x1="15" y1="12" x2="3" y2="12"/>
+            </svg>
+        `;
+    }
 }
 
 /**
