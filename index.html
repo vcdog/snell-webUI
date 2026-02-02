@@ -14,9 +14,11 @@
     <!-- 立即检查登录状态，防止页面闪现 -->
     <script>
         (function() {
-            const isLoggedIn = sessionStorage.getItem('AUTH_SESSION') === 'true';
+            const isLoggedIn = sessionStorage.getItem('snell_panel_auth_session') === 'true' || 
+                             localStorage.getItem('snell_panel_auth_session') === 'true';
             const currentPath = window.location.pathname;
             const isLoginPage = currentPath.endsWith('login.html');
+            
             if (!isLoggedIn && !isLoginPage) {
                 window.location.replace('login.html');
             }
