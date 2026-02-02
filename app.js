@@ -341,12 +341,11 @@ async function deleteNode(nodeId) {
     if (response.status === 'success') {
         return response;
     }
-
     throw new Error(response.message || '删除节点失败');
 }
 
 /**
- * Get subscription URL
+ * Generate subscription URL with options
  */
 function getSubscriptionUrl(options = {}) {
     const { url, token } = getApiConfig();
@@ -374,13 +373,13 @@ function getSubscriptionUrl(options = {}) {
     if (options.format === 'advanced') {
         subUrl.searchParams.set('format', 'advanced');
 
-        // Rule set selection
+        // Rule set selection (minimal, balanced, comprehensive, custom)
         if (options.ruleSet) {
             subUrl.searchParams.set('ruleSet', options.ruleSet);
         }
 
-        // Custom rules (comma-separated)
-        if (options.ruleSet === 'custom' && options.customRules && options.customRules.length > 0) {
+        // Custom rules (comma-separated) - can be combined with any ruleSet
+        if (options.customRules && options.customRules.length > 0) {
             subUrl.searchParams.set('customRules', options.customRules.join(','));
         }
     }
@@ -901,13 +900,25 @@ function updateSubscriptionUrl() {
         const rulePreset = document.getElementById('rule-preset')?.value || 'custom';
 
         options.format = 'advanced';
+
+        // Pass the ruleSet parameter - this determines which template to use on backend
         options.ruleSet = rulePreset;
 
-        // If custom mode, collect selected rules
-        if (rulePreset === 'custom') {
-            const ruleCheckboxes = document.querySelectorAll('#custom-rules-grid input[name="rule"]:checked');
-            const selectedRules = Array.from(ruleCheckboxes).map(cb => cb.value);
-            options.customRules = selectedRules;
+        // Collect all selected rule categories (checkboxes)
+        const ruleCheckboxes = document.querySelectorAll('.rules-grid input[name="rule"]:checked');
+        const selectedCategories = Array.from(ruleCheckboxes).map(cb => cb.value);
+
+        // Collect custom defined rules (raw) from the custom rules editor
+        const rawUserRules = customRulesState.rules
+            .filter(r => r.value.trim() !== '')
+            .map(r => `${r.type},${r.value},${r.policy}`);
+
+        // Combine categories and raw rules for custom rules parameter
+        const allCustomRules = [...selectedCategories, ...rawUserRules];
+
+        // Only send customRules if there are any
+        if (allCustomRules.length > 0) {
+            options.customRules = allCustomRules;
         }
     }
 
@@ -1253,9 +1264,13 @@ function applyRulePreset(preset) {
     ruleCheckboxes.forEach(cb => cb.checked = false);
 
     const presets = {
-        minimal: ['private', 'china-direct'],
-        balanced: ['ad-block', 'private', 'china-direct', 'google', 'telegram', 'github'],
-        comprehensive: ['ad-block', 'ai-services', 'youtube', 'google', 'private', 'china-direct', 'telegram', 'github', 'microsoft', 'apple', 'social-media', 'streaming']
+        minimal: ['private', 'china-direct', 'non-china'],
+        balanced: ['ai-services', 'youtube', 'google', 'private', 'china-direct', 'telegram', 'github', 'non-china'],
+        comprehensive: [
+            'ad-block', 'ai-services', 'bilibili', 'youtube', 'google', 'private', 'china-direct',
+            'telegram', 'github', 'microsoft', 'apple', 'social-media', 'streaming', 'gaming',
+            'education', 'finance', 'cloud', 'non-china'
+        ]
     };
 
     if (presets[preset]) {
