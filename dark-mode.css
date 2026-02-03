@@ -1,5 +1,5 @@
 /* ===================================
-   Dark Mode Support
+   Dark Mode Support - Enhanced
    =================================== */
 
 /* Dark Mode Variables */
@@ -64,13 +64,135 @@
 }
 
 /* Theme Transition */
-html, body {
+html,
+body {
     transition: background-color var(--transition-normal), color var(--transition-normal);
 }
 
 * {
-    transition: background-color var(--transition-fast), 
-                border-color var(--transition-fast),
-                color var(--transition-fast),
-                box-shadow var(--transition-fast);
+    transition: background-color var(--transition-fast),
+        border-color var(--transition-fast),
+        color var(--transition-fast),
+        box-shadow var(--transition-fast);
+}
+
+/* ===================================
+   Dark Mode - Login Page Fixes
+   =================================== */
+
+/* Login Card Background */
+html[data-theme="dark"] .login-container .login-card,
+[data-theme="dark"] .login-container .login-card {
+    background: rgba(24, 24, 27, 0.95) !important;
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Form Labels - Strong Priority */
+html[data-theme="dark"] .login-card .form-group label,
+[data-theme="dark"] .login-card .form-group label,
+html[data-theme="dark"] .form-group label,
+[data-theme="dark"] .form-group label {
+    color: #e4e4e7 !important;
+    /* Direct hex color for maximum priority */
+    font-weight: 500 !important;
+}
+
+/* Checkbox Label */
+html[data-theme="dark"] .login-card .checkbox-label,
+[data-theme="dark"] .login-card .checkbox-label,
+html[data-theme="dark"] .checkbox-label,
+[data-theme="dark"] .checkbox-label,
+html[data-theme="dark"] .checkbox-label span,
+[data-theme="dark"] .checkbox-label span {
+    color: #d4d4d8 !important;
+    /* Direct hex color */
+}
+
+/* Input Fields */
+html[data-theme="dark"] .login-card .form-input,
+[data-theme="dark"] .login-card .form-input,
+html[data-theme="dark"] .form-input,
+[data-theme="dark"] .form-input {
+    background: #27272a !important;
+    border-color: #3f3f46 !important;
+    color: #fafafa !important;
+}
+
+html[data-theme="dark"] .form-input::placeholder,
+[data-theme="dark"] .form-input::placeholder {
+    color: #a1a1aa !important;
+}
+
+/* Login Footer */
+html[data-theme="dark"] .login-footer,
+[data-theme="dark"] .login-footer,
+html[data-theme="dark"] .login-footer p,
+[data-theme="dark"] .login-footer p {
+    color: #a1a1aa !important;
+}
+
+html[data-theme="dark"] .login-footer a,
+[data-theme="dark"] .login-footer a {
+    color: #6366f1 !important;
+}
+
+/* Input Icons */
+html[data-theme="dark"] .input-icon,
+[data-theme="dark"] .input-icon {
+    color: #71717a !important;
+}
+
+/* Auto Dark Mode - Login Page */
+@media (prefers-color-scheme: dark) {
+
+    html:not([data-theme="light"]) .login-container .login-card,
+    :root:not([data-theme="light"]) .login-container .login-card {
+        background: rgba(24, 24, 27, 0.95) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    html:not([data-theme="light"]) .login-card .form-group label,
+    :root:not([data-theme="light"]) .login-card .form-group label,
+    html:not([data-theme="light"]) .form-group label,
+    :root:not([data-theme="light"]) .form-group label {
+        color: #e4e4e7 !important;
+        font-weight: 500 !important;
+    }
+
+    html:not([data-theme="light"]) .checkbox-label,
+    :root:not([data-theme="light"]) .checkbox-label,
+    html:not([data-theme="light"]) .checkbox-label span,
+    :root:not([data-theme="light"]) .checkbox-label span {
+        color: #d4d4d8 !important;
+    }
+
+    html:not([data-theme="light"]) .form-input,
+    :root:not([data-theme="light"]) .form-input {
+        background: #27272a !important;
+        border-color: #3f3f46 !important;
+        color: #fafafa !important;
+    }
+
+    html:not([data-theme="light"]) .form-input::placeholder,
+    :root:not([data-theme="light"]) .form-input::placeholder {
+        color: #a1a1aa !important;
+    }
+
+    html:not([data-theme="light"]) .login-footer,
+    :root:not([data-theme="light"]) .login-footer,
+    html:not([data-theme="light"]) .login-footer p,
+    :root:not([data-theme="light"]) .login-footer p {
+        color: #a1a1aa !important;
+    }
+
+    html:not([data-theme="light"]) .login-footer a,
+    :root:not([data-theme="light"]) .login-footer a {
+        color: #6366f1 !important;
+    }
+
+    html:not([data-theme="light"]) .input-icon,
+    :root:not([data-theme="light"]) .input-icon {
+        color: #71717a !important;
+    }
 }

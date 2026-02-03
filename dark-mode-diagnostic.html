@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>深色模式诊断工具</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            max-width: 900px;
+            margin: 0 auto;
+            background: #f5f5f5;
+        }
+
+        .diagnostic-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .diagnostic-card h2 {
+            margin-top: 0;
+            color: #4f46e5;
+        }
+
+        .test-result {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+
+        .test-pass {
+            background: #d1fae5;
+            border-left: 4px solid #10b981;
+        }
+
+        .test-fail {
+            background: #fee2e2;
+            border-left: 4px solid #ef4444;
+        }
+
+        button {
+            background: #4f46e5;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 5px;
+        }
+
+        button:hover {
+            background: #4338ca;
+        }
+
+        .color-box {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+            border: 1px solid #ccc;
+            vertical-align: middle;
+        }
+
+        code {
+            background: #f3f4f6;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>🔧 深色模式诊断工具</h1>
+
+    <div class="diagnostic-card">
+        <h2>1. CSS 文件检查</h2>
+        <div id="css-check"></div>
+        <button onclick="checkCSSFiles()">检查 CSS 文件</button>
+    </div>
+
+    <div class="diagnostic-card">
+        <h2>2. 主题状态检查</h2>
+        <div id="theme-check"></div>
+        <button onclick="checkThemeState()">检查主题状态</button>
+    </div>
+
+    <div class="diagnostic-card">
+        <h2>3. 颜色变量检查</h2>
+        <div id="color-check"></div>
+        <button onclick="checkColorVariables()">检查颜色变量</button>
+    </div>
+
+    <div class="diagnostic-card">
+        <h2>4. 快速修复工具</h2>
+        <button onclick="applyQuickFix()">应用临时修复（直接设置颜色）</button>
+        <button onclick="clearCache()">打开清除缓存页面</button>
+        <div id="fix-result"></div>
+    </div>
+
+    <div class="diagnostic-card">
+        <h2>5. 登录页面预览</h2>
+        <button onclick="openLoginPage()">在新标签打开登录页</button>
+        <button onclick="openLoginPageIncognito()">在无痕模式打开（推荐）</button>
+    </div>
+
+    <script>
+        function checkCSSFiles() {
+            const result = document.getElementById('css-check');
+            let html = '<h3>检查结果：</h3>';
+
+            // Check if dark-mode.css exists
+            const stylesheets = Array.from(document.styleSheets);
+            const darkModeCSS = stylesheets.find(sheet =>
+                sheet.href && sheet.href.includes('dark-mode.css')
+            );
+
+            if (darkModeCSS) {
+                html += '<div class="test-pass">✅ dark-mode.css 已加载</div>';
+                html += `<div class="test-pass">文件路径: ${darkModeCSS.href}</div>`;
+            } else {
+                html += '<div class="test-fail">❌ dark-mode.css 未找到</div>';
+                html += '<div class="test-fail">请确保 HTML 中包含: &lt;link rel="stylesheet" href="dark-mode.css"&gt;</div>';
+            }
+
+            // Check network
+            fetch('../dark-mode.css')
+                .then(response => {
+                    if (response.ok) {
+                        html += '<div class="test-pass">✅ dark-mode.css 网络可访问</div>';
+                        return response.text();
+                    } else {
+                        html += '<div class="test-fail">❌ dark-mode.css 网络不可访问 (状态: ' + response.status + ')</div>';
+                    }
+                })
+                .then(text => {
+                    if (text && text.includes('form-group label')) {
+                        html += '<div class="test-pass">✅ CSS 内容包含修复代码</div>';
+                    } else if (text) {
+                        html += '<div class="test-fail">❌ CSS 内容可能不完整</div>';
+                    }
+                    result.innerHTML = html;
+                })
+                .catch(err => {
+                    html += '<div class="test-fail">❌ 加载 CSS 时出错: ' + err.message + '</div>';
+                    result.innerHTML = html;
+                });
+
+            result.innerHTML = html;
+        }
+
+        function checkThemeState() {
+            const result = document.getElementById('theme-check');
+            const htmlElement = document.documentElement;
+            const theme = htmlElement.getAttribute('data-theme');
+            const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+            let html = '<h3>当前状态：</h3>';
+            html += `<div class="test-result">data-theme 属性: <code>${theme || '未设置（自动模式）'}</code></div>`;
+            html += `<div class="test-result">系统偏好: <code>${systemPrefersDark ? '深色' : '浅色'}</code></div>`;
+
+            if (theme === 'dark') {
+                html += '<div class="test-pass">✅ 深色模式已激活（手动）</div>';
+            } else if (theme === 'light') {
+                html += '<div class="test-result">⚪ 浅色模式已激活</div>';
+            } else if (systemPrefersDark) {
+                html += '<div class="test-pass">✅ 深色模式应该已激活（自动）</div>';
+            } else {
+                html += '<div class="test-result">⚪ 浅色模式应该已激活（自动）</div>';
+            }
+
+            result.innerHTML = html;
+        }
+
+        function checkColorVariables() {
+            const result = document.getElementById('color-check');
+            const root = document.documentElement;
+            const style = getComputedStyle(root);
+
+            const colors = {
+                '--color-gray-200': '#3f3f46',
+                '--color-gray-700': '#e4e4e7',
+                '--color-gray-900': '#fafafa'
+            };
+
+            let html = '<h3>CSS 变量值：</h3>';
+
+            for (const [varName, expectedDark] of Object.entries(colors)) {
+                const value = style.getPropertyValue(varName).trim();
+                html += `<div class="test-result">`;
+                html += `<span class="color-box" style="background: ${value}"></span>`;
+                html += `${varName}: <code>${value}</code>`;
+                html += `</div>`;
+            }
+
+            result.innerHTML = html;
+        }
+
+        function applyQuickFix() {
+            const result = document.getElementById('fix-result');
+
+            try {
+                // This is for the login page
+                const style = document.createElement('style');
+                style.textContent = `
+                    [data-theme="dark"] .form-group label {
+                        color: #e4e4e7 !important;
+                    }
+                    [data-theme="dark"] .checkbox-label {
+                        color: #d4d4d8 !important;
+                    }
+                    [data-theme="dark"] .login-card {
+                        background: rgba(24, 24, 27, 0.95) !important;
+                    }
+                    [data-theme="dark"] .form-input {
+                        background: #27272a !important;
+                        color: #fafafa !important;
+                    }
+                `;
+                document.head.appendChild(style);
+
+                result.innerHTML = '<div class="test-pass">✅ 临时修复已应用！请刷新登录页查看效果。</div>';
+            } catch (err) {
+                result.innerHTML = '<div class="test-fail">❌ 应用失败: ' + err.message + '</div>';
+            }
+        }
+
+        function clearCache() {
+            alert('请按照以下步骤清除缓存：\n\n1. 按 Ctrl + Shift + Delete\n2. 选择"全部"时间范围\n3. 勾选"缓存的图片和文件"\n4. 点击"清除数据"');
+            window.open('chrome://settings/clearBrowserData', '_blank');
+        }
+
+        function openLoginPage() {
+            window.open('../login.html', '_blank');
+        }
+
+        function openLoginPageIncognito() {
+            alert('无法自动打开无痕模式窗口。\n\n请手动操作：\n1. 按 Ctrl + Shift + N 打开无痕窗口\n2. 访问登录页面\n3. 测试深色模式');
+        }
+
+        // Auto-run checks on load
+        window.addEventListener('DOMContentLoaded', () => {
+            checkThemeState();
+        });
+    </script>
+</body>
+
+</html>
