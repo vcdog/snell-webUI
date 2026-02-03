@@ -45,15 +45,21 @@ function debounce(func, wait) {
 }
 
 /**
- * Convert country code to flag emoji
+ * Convert country code to flag icon (PNG image)
+ * Uses flag icons from https://github.com/erdongchanyo/icon
  */
 function countryCodeToFlag(countryCode) {
-    if (!countryCode || countryCode.length !== 2) return '';
-    const codePoints = countryCode
-        .toUpperCase()
-        .split('')
-        .map(char => 0x1F1E6 + char.charCodeAt(0) - 65);
-    return String.fromCodePoint(...codePoints);
+    if (!countryCode || countryCode.length < 2) return '';
+
+    // Convert to uppercase
+    const code = countryCode.toUpperCase();
+
+    // Map GB to UK for the icon repository
+    const iconCode = code === 'GB' ? 'UK' : code;
+
+    // Return img tag with flag icon
+    const iconUrl = `https://raw.githubusercontent.com/erdongchanyo/icon/main/Policy-Country/${iconCode}.png`;
+    return `<img src="${iconUrl}" alt="${code}" class="country-flag-icon" onerror="this.style.display='none'">`;
 }
 
 /**
@@ -421,10 +427,7 @@ function renderNodes() {
                 <td class="psk-cell">${maskPsk(node.psk)}</td>
                 <td>${node.version || '4'}</td>
                 <td>
-                    <div class="location-cell">
-                        <span class="flag">${countryCodeToFlag(node.country_code)}</span>
-                        <span>${node.country_code || '-'}</span>
-                    </div>
+                    <div class="location-cell">${node.country_code ? node.country_code.toUpperCase() : '-'}</div>
                 </td>
                 <td>${node.isp || '-'}</td>
                 <td class="asn-cell">${node.asn ? `AS${node.asn}` : '-'}</td>

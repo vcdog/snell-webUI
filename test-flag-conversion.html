@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>国旗转换测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: #f9f9f9;
+        }
+
+        .flag-display {
+            font-size: 32px;
+            margin: 10px 0;
+        }
+
+        .code-display {
+            font-family: monospace;
+            background: #fff;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+
+        button {
+            padding: 10px 20px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+
+        .result {
+            margin-top: 15px;
+            padding: 10px;
+            background: white;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>🚩 国旗转换功能测试</h1>
+
+    <div class="test-section">
+        <h2>1. 函数测试</h2>
+        <button onclick="testFunction()">测试 countryCodeToFlag 函数</button>
+        <div id="function-test-result" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>2. 国家代码转换示例</h2>
+        <div class="flag-display">
+            <strong>US →</strong> <span id="flag-us"></span><br>
+            <strong>GB →</strong> <span id="flag-gb"></span><br>
+            <strong>KR →</strong> <span id="flag-kr"></span><br>
+            <strong>CN →</strong> <span id="flag-cn"></span><br>
+            <strong>JP →</strong> <span id="flag-jp"></span><br>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>3. 模拟节点数据</h2>
+        <button onclick="testWithNodeData()">使用节点数据测试</button>
+        <div id="node-test-result" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>4. 统计区域模拟</h2>
+        <p>模拟实际页面的统计区域：</p>
+        <div class="stat-locations" id="test-stat-locations" style="font-size: 24px;">
+            <span class="no-data">等待测试...</span>
+        </div>
+        <button onclick="testStatsDisplay()">生成统计图标</button>
+    </div>
+
+    <script>
+        /**
+         * Convert country code to flag emoji
+         * 这是从 app.js 复制的完全相同的函数
+         */
+        function countryCodeToFlag(countryCode) {
+            if (!countryCode || countryCode.length !== 2) return '';
+            const codePoints = countryCode
+                .toUpperCase()
+                .split('')
+                .map(char => 0x1F1E6 + char.charCodeAt(0) - 65);
+            return String.fromCodePoint(...codePoints);
+        }
+
+        // 测试1: 函数基础测试
+        function testFunction() {
+            const result = document.getElementById('function-test-result');
+            const tests = [
+                { code: 'US', expected: '🇺🇸' },
+                { code: 'GB', expected: '🇬🇧' },
+                { code: 'KR', expected: '🇰🇷' },
+                { code: 'us', expected: '🇺🇸' },  // 测试小写
+                { code: '', expected: '' },       // 测试空字符串
+            ];
+
+            let html = '<h3>测试结果：</h3>';
+            tests.forEach(test => {
+                const actual = countryCodeToFlag(test.code);
+                const status = actual === test.expected ? '✅' : '❌';
+                html += `<div>${status} countryCodeToFlag('${test.code}') = ${actual || '(空)'}</div>`;
+            });
+
+            result.innerHTML = html;
+        }
+
+        // 页面加载时自动显示国旗
+        window.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('flag-us').textContent = countryCodeToFlag('US');
+            document.getElementById('flag-gb').textContent = countryCodeToFlag('GB');
+            document.getElementById('flag-kr').textContent = countryCodeToFlag('KR');
+            document.getElementById('flag-cn').textContent = countryCodeToFlag('CN');
+            document.getElementById('flag-jp').textContent = countryCodeToFlag('JP');
+        });
+
+        // 测试2: 使用节点数据
+        function testWithNodeData() {
+            const result = document.getElementById('node-test-result');
+
+            // 模拟从后端获取的节点数据
+            const mockNodes = [
+                { id: 1, country_code: 'US', node_name: '美国节点' },
+                { id: 2, country_code: 'GB', node_name: '英国节点' },
+                { id: 3, country_code: 'KR', node_name: '韩国节点' },
+                { id: 4, country_code: 'US', node_name: '美国节点2' },
+            ];
+
+            // 提取唯一的国家代码
+            const countries = [...new Set(mockNodes.map(n => n.country_code).filter(Boolean))];
+
+            let html = '<h3>节点数据：</h3>';
+            html += `<p>总节点数: ${mockNodes.length}</p>`;
+            html += `<p>国家/地区数: ${countries.length}</p>`;
+            html += '<h3>国家列表：</h3>';
+            html += '<div style="font-size: 32px;">';
+
+            countries.forEach(code => {
+                const flag = countryCodeToFlag(code);
+                html += `<span title="${code}">${flag}</span> `;
+            });
+
+            html += '</div>';
+            result.innerHTML = html;
+        }
+
+        // 测试3: 统计区域显示
+        function testStatsDisplay() {
+            const locationsContainer = document.getElementById('test-stat-locations');
+
+            // 模拟实际的国家代码数组
+            const countries = ['US', 'GB', 'KR'];
+
+            // 使用与 app.js 完全相同的代码
+            if (countries.length > 0) {
+                locationsContainer.innerHTML = countries.map(code =>
+                    `<span class="country-flag" title="${code}">${countryCodeToFlag(code)}</span>`
+                ).join('');
+            } else {
+                locationsContainer.innerHTML = '<span class="no-data">暂无节点配置</span>';
+            }
+        }
+
+        // 自动运行所有测试
+        window.addEventListener('DOMContentLoaded', () => {
+            console.log('=== 国旗转换测试 ===');
+            console.log('countryCodeToFlag("US") =', countryCodeToFlag('US'));
+            console.log('countryCodeToFlag("GB") =', countryCodeToFlag('GB'));
+            console.log('countryCodeToFlag("KR") =', countryCodeToFlag('KR'));
+            console.log('=====================');
+        });
+    </script>
+</body>
+
+</html>

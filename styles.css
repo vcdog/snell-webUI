@@ -1678,3 +1678,53 @@ body {
 .input-with-icon .form-input:focus~.input-icon {
     color: var(--color-accent);
 }
+/* Country Flag Icons */
+.country-flag-icon {
+    width: 16px;
+    height: 12px;
+    object-fit: cover;
+    border-radius: 2px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+    vertical-align: middle;
+    transition: all var(--transition-fast);
+}
+
+.country-flag-icon:hover {
+    transform: scale(1.1);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+/* Statistics area flags */
+.stat-locations .country-flag-icon {
+    width: 20px;
+    height: 15px;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.stat-locations .country-flag-icon:hover {
+    transform: scale(1.2);
+}
+
+/* Node name flags */
+.node-name .country-flag-icon {
+    width: 16px;
+    height: 12px;
+}
+
+/* Fallback for missing flags */
+.country-flag-icon[style*="display: none"] {
+    display: inline-block !important;
+    background: var(--color-gray-200);
+    position: relative;
+}
+
+.country-flag-icon[style*="display: none"]::after {
+    content: "?";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: var(--color-gray-500);
+    font-size: 10px;
+}

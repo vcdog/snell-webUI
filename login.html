@@ -10,6 +10,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="dark-mode.css">
+    <script src="theme.js"></script>
 </head>
 
 <body>
@@ -25,6 +27,31 @@
 
     <!-- 登录页面 -->
     <div id="login-page" class="login-container" style="display: flex;">
+        <!-- 主题切换按钮（浮动） -->
+        <button class="header-icon" id="btn-theme-toggle" title="主题设置"
+            style="position: fixed; top: 2rem; right: 2rem; z-index: 100;">
+            <svg id="theme-icon-light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="5" />
+                <line x1="12" y1="1" x2="12" y2="3" />
+                <line x1="12" y1="21" x2="12" y2="23" />
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+                <line x1="1" y1="12" x2="3" y2="12" />
+                <line x1="21" y1="12" x2="23" y2="12" />
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+            </svg>
+            <svg id="theme-icon-dark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                style="display: none;">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+            </svg>
+            <svg id="theme-icon-auto" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                style="display: none;">
+                <circle cx="12" cy="12" r="3" />
+                <path
+                    d="M12 1v6m0 6v6m5.2-13.2l-3.5 3.5m-3.5 3.5l-3.5 3.5m13.2-.7h-6m-6 0H1m13.2-13.2l-3.5 3.5m-3.5 3.5L4.2 4.2" />
+            </svg>
+        </button>
         <div class="login-card">
             <div class="login-header">
                 <svg class="login-logo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
