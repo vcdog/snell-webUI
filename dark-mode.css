@@ -5,61 +5,88 @@
 /* Dark Mode Variables */
 [data-theme="dark"] {
     /* Backgrounds */
-    --color-white: #09090b;
-    --color-gray-50: #18181b;
-    --color-gray-100: #27272a;
-    --color-gray-200: #3f3f46;
-    --color-gray-300: #52525b;
-    --color-gray-400: #71717a;
-    --color-gray-500: #a1a1aa;
-    --color-gray-600: #d4d4d8;
-    --color-gray-700: #e4e4e7;
-    --color-gray-800: #f4f4f5;
-    --color-gray-900: #fafafa;
+    --color-white: #ffffff;
+    --color-gray-50: #0b1220;
+    --color-gray-100: #0f172a;
+    --color-gray-200: #162036;
+    --color-gray-300: #1f2a44;
+    --color-gray-400: #334155;
+    --color-gray-500: #64748b;
+    --color-gray-600: #94a3b8;
+    --color-gray-700: #cbd5e1;
+    --color-gray-800: #e2e8f0;
+    --color-gray-900: #f8fafc;
 
     /* Shadows - Enhanced for dark mode */
-    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.6);
-    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.7), 0 2px 4px -1px rgba(0, 0, 0, 0.5);
-    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.8), 0 4px 6px -2px rgba(0, 0, 0, 0.6);
-    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.9), 0 10px 10px -5px rgba(0, 0, 0, 0.7);
-    --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.9);
-    --shadow-glow: 0 0 40px rgba(99, 102, 241, 0.4);
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
+    --shadow-md: 0 6px 12px rgba(0, 0, 0, 0.55);
+    --shadow-lg: 0 16px 30px rgba(0, 0, 0, 0.6);
+    --shadow-xl: 0 24px 40px rgba(0, 0, 0, 0.65);
+    --shadow-2xl: 0 40px 70px rgba(0, 0, 0, 0.7);
+    --shadow-glow: 0 0 40px rgba(47, 123, 255, 0.35);
+
+    /* Glass Surfaces */
+    --glass-bg: rgba(10, 16, 30, 0.65);
+    --glass-bg-strong: rgba(10, 16, 30, 0.82);
+    --glass-bg-soft: rgba(10, 16, 30, 0.45);
+    --glass-border: rgba(148, 163, 184, 0.14);
+    --glass-border-strong: rgba(148, 163, 184, 0.22);
+    --glass-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+    --glass-shadow-strong: 0 25px 70px rgba(0, 0, 0, 0.6);
+    --glass-blur: blur(18px) saturate(140%);
+    --noise-color: rgba(255, 255, 255, 0.18);
+    --noise-opacity: 0.04;
+    --table-row-bg: rgba(10, 16, 30, 0.6);
+    --table-row-bg-alt: rgba(10, 16, 30, 0.45);
+    --table-row-hover: rgba(47, 123, 255, 0.22);
 
     /* Gradient adjustments */
-    --gradient-mesh: radial-gradient(at 40% 20%, hsla(240, 100%, 74%, 0.08) 0px, transparent 50%),
-        radial-gradient(at 80% 0%, hsla(189, 100%, 56%, 0.05) 0px, transparent 50%),
-        radial-gradient(at 0% 50%, hsla(355, 100%, 93%, 0.05) 0px, transparent 50%),
-        radial-gradient(at 80% 50%, hsla(340, 100%, 76%, 0.05) 0px, transparent 50%),
-        radial-gradient(at 0% 100%, hsla(22, 100%, 77%, 0.05) 0px, transparent 50%);
+    --gradient-mesh: radial-gradient(at 20% 20%, rgba(47, 123, 255, 0.18) 0px, transparent 55%),
+        radial-gradient(at 80% 10%, rgba(34, 211, 238, 0.14) 0px, transparent 50%),
+        radial-gradient(at 70% 80%, rgba(14, 165, 233, 0.12) 0px, transparent 55%),
+        radial-gradient(at 0% 70%, rgba(59, 130, 246, 0.12) 0px, transparent 55%);
 }
 
 /* Auto Dark Mode - Follow System */
 @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
-        --color-white: #09090b;
-        --color-gray-50: #18181b;
-        --color-gray-100: #27272a;
-        --color-gray-200: #3f3f46;
-        --color-gray-300: #52525b;
-        --color-gray-400: #71717a;
-        --color-gray-500: #a1a1aa;
-        --color-gray-600: #d4d4d8;
-        --color-gray-700: #e4e4e7;
-        --color-gray-800: #f4f4f5;
-        --color-gray-900: #fafafa;
+        --color-white: #ffffff;
+        --color-gray-50: #0b1220;
+        --color-gray-100: #0f172a;
+        --color-gray-200: #162036;
+        --color-gray-300: #1f2a44;
+        --color-gray-400: #334155;
+        --color-gray-500: #64748b;
+        --color-gray-600: #94a3b8;
+        --color-gray-700: #cbd5e1;
+        --color-gray-800: #e2e8f0;
+        --color-gray-900: #f8fafc;
 
-        --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.6);
-        --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.7), 0 2px 4px -1px rgba(0, 0, 0, 0.5);
-        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.8), 0 4px 6px -2px rgba(0, 0, 0, 0.6);
-        --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.9), 0 10px 10px -5px rgba(0, 0, 0, 0.7);
-        --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.9);
-        --shadow-glow: 0 0 40px rgba(99, 102, 241, 0.4);
+        --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
+        --shadow-md: 0 6px 12px rgba(0, 0, 0, 0.55);
+        --shadow-lg: 0 16px 30px rgba(0, 0, 0, 0.6);
+        --shadow-xl: 0 24px 40px rgba(0, 0, 0, 0.65);
+        --shadow-2xl: 0 40px 70px rgba(0, 0, 0, 0.7);
+        --shadow-glow: 0 0 40px rgba(47, 123, 255, 0.35);
 
-        --gradient-mesh: radial-gradient(at 40% 20%, hsla(240, 100%, 74%, 0.08) 0px, transparent 50%),
-            radial-gradient(at 80% 0%, hsla(189, 100%, 56%, 0.05) 0px, transparent 50%),
-            radial-gradient(at 0% 50%, hsla(355, 100%, 93%, 0.05) 0px, transparent 50%),
-            radial-gradient(at 80% 50%, hsla(340, 100%, 76%, 0.05) 0px, transparent 50%),
-            radial-gradient(at 0% 100%, hsla(22, 100%, 77%, 0.05) 0px, transparent 50%);
+        --glass-bg: rgba(10, 16, 30, 0.65);
+        --glass-bg-strong: rgba(10, 16, 30, 0.82);
+        --glass-bg-soft: rgba(10, 16, 30, 0.45);
+        --glass-border: rgba(148, 163, 184, 0.14);
+        --glass-border-strong: rgba(148, 163, 184, 0.22);
+        --glass-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+        --glass-shadow-strong: 0 25px 70px rgba(0, 0, 0, 0.6);
+        --glass-blur: blur(18px) saturate(140%);
+        --noise-color: rgba(255, 255, 255, 0.18);
+        --noise-opacity: 0.04;
+        --table-row-bg: rgba(10, 16, 30, 0.6);
+        --table-row-bg-alt: rgba(10, 16, 30, 0.45);
+        --table-row-hover: rgba(47, 123, 255, 0.22);
+
+        --gradient-mesh: radial-gradient(at 20% 20%, rgba(47, 123, 255, 0.18) 0px, transparent 55%),
+            radial-gradient(at 80% 10%, rgba(34, 211, 238, 0.14) 0px, transparent 50%),
+            radial-gradient(at 70% 80%, rgba(14, 165, 233, 0.12) 0px, transparent 55%),
+            radial-gradient(at 0% 70%, rgba(59, 130, 246, 0.12) 0px, transparent 55%);
     }
 }
 
@@ -83,9 +110,9 @@ body {
 /* Login Card Background */
 html[data-theme="dark"] .login-container .login-card,
 [data-theme="dark"] .login-container .login-card {
-    background: rgba(24, 24, 27, 0.95) !important;
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(10, 16, 30, 0.85) !important;
+    backdrop-filter: blur(20px) saturate(140%);
+    border: 1px solid rgba(148, 163, 184, 0.16);
 }
 
 /* Form Labels - Strong Priority */
@@ -93,7 +120,7 @@ html[data-theme="dark"] .login-card .form-group label,
 [data-theme="dark"] .login-card .form-group label,
 html[data-theme="dark"] .form-group label,
 [data-theme="dark"] .form-group label {
-    color: #e4e4e7 !important;
+    color: #e2e8f0 !important;
     /* Direct hex color for maximum priority */
     font-weight: 500 !important;
 }
@@ -105,7 +132,7 @@ html[data-theme="dark"] .checkbox-label,
 [data-theme="dark"] .checkbox-label,
 html[data-theme="dark"] .checkbox-label span,
 [data-theme="dark"] .checkbox-label span {
-    color: #d4d4d8 !important;
+    color: #cbd5e1 !important;
     /* Direct hex color */
 }
 
@@ -114,14 +141,14 @@ html[data-theme="dark"] .login-card .form-input,
 [data-theme="dark"] .login-card .form-input,
 html[data-theme="dark"] .form-input,
 [data-theme="dark"] .form-input {
-    background: #27272a !important;
-    border-color: #3f3f46 !important;
-    color: #fafafa !important;
+    background: rgba(10, 16, 30, 0.75) !important;
+    border-color: rgba(148, 163, 184, 0.22) !important;
+    color: #f8fafc !important;
 }
 
 html[data-theme="dark"] .form-input::placeholder,
 [data-theme="dark"] .form-input::placeholder {
-    color: #a1a1aa !important;
+    color: #94a3b8 !important;
 }
 
 /* Login Footer */
@@ -129,18 +156,18 @@ html[data-theme="dark"] .login-footer,
 [data-theme="dark"] .login-footer,
 html[data-theme="dark"] .login-footer p,
 [data-theme="dark"] .login-footer p {
-    color: #a1a1aa !important;
+    color: #94a3b8 !important;
 }
 
 html[data-theme="dark"] .login-footer a,
 [data-theme="dark"] .login-footer a {
-    color: #6366f1 !important;
+    color: #5aa1ff !important;
 }
 
 /* Input Icons */
 html[data-theme="dark"] .input-icon,
 [data-theme="dark"] .input-icon {
-    color: #71717a !important;
+    color: #64748b !important;
 }
 
 /* Auto Dark Mode - Login Page */
@@ -148,15 +175,15 @@ html[data-theme="dark"] .input-icon,
 
     html:not([data-theme="light"]) .login-container .login-card,
     :root:not([data-theme="light"]) .login-container .login-card {
-        background: rgba(24, 24, 27, 0.95) !important;
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(10, 16, 30, 0.85) !important;
+        border: 1px solid rgba(148, 163, 184, 0.16);
     }
 
     html:not([data-theme="light"]) .login-card .form-group label,
     :root:not([data-theme="light"]) .login-card .form-group label,
     html:not([data-theme="light"]) .form-group label,
     :root:not([data-theme="light"]) .form-group label {
-        color: #e4e4e7 !important;
+        color: #e2e8f0 !important;
         font-weight: 500 !important;
     }
 
@@ -164,35 +191,35 @@ html[data-theme="dark"] .input-icon,
     :root:not([data-theme="light"]) .checkbox-label,
     html:not([data-theme="light"]) .checkbox-label span,
     :root:not([data-theme="light"]) .checkbox-label span {
-        color: #d4d4d8 !important;
+        color: #cbd5e1 !important;
     }
 
     html:not([data-theme="light"]) .form-input,
     :root:not([data-theme="light"]) .form-input {
-        background: #27272a !important;
-        border-color: #3f3f46 !important;
-        color: #fafafa !important;
+        background: rgba(10, 16, 30, 0.75) !important;
+        border-color: rgba(148, 163, 184, 0.22) !important;
+        color: #f8fafc !important;
     }
 
     html:not([data-theme="light"]) .form-input::placeholder,
     :root:not([data-theme="light"]) .form-input::placeholder {
-        color: #a1a1aa !important;
+        color: #94a3b8 !important;
     }
 
     html:not([data-theme="light"]) .login-footer,
     :root:not([data-theme="light"]) .login-footer,
     html:not([data-theme="light"]) .login-footer p,
     :root:not([data-theme="light"]) .login-footer p {
-        color: #a1a1aa !important;
+        color: #94a3b8 !important;
     }
 
     html:not([data-theme="light"]) .login-footer a,
     :root:not([data-theme="light"]) .login-footer a {
-        color: #6366f1 !important;
+        color: #5aa1ff !important;
     }
 
     html:not([data-theme="light"]) .input-icon,
     :root:not([data-theme="light"]) .input-icon {
-        color: #71717a !important;
+        color: #64748b !important;
     }
 }
